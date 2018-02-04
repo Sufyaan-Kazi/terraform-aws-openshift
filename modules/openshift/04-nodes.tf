@@ -1,6 +1,6 @@
-//  Define the RHEL 7.2 AMI by:
-//  RedHat, Latest, x86_64, EBS, HVM, RHEL 7.2
-data "aws_ami" "rhel7_2" {
+//  Define the RHEL 7.3 AMI by:
+//  RedHat, Latest, x86_64, EBS, HVM, RHEL 7.3
+data "aws_ami" "rhel7_3" {
   most_recent = true
 
   owners = ["309956199498"] // Red Hat's account ID.
@@ -22,7 +22,7 @@ data "aws_ami" "rhel7_2" {
 
   filter {
     name   = "name"
-    values = ["RHEL-7.2*"]
+    values = ["RHEL-7.3*"]
   }
 }
 
@@ -41,7 +41,7 @@ data "template_file" "setup-master" {
 
 //  Launch configuration for the consul cluster auto-scaling group.
 resource "aws_instance" "master" {
-  ami                  = "${data.aws_ami.rhel7_2.id}"
+  ami                  = "${data.aws_ami.rhel7_3.id}"
   instance_type        = "${var.amisize}"
   subnet_id            = "${aws_subnet.public-subnet.id}"
   iam_instance_profile = "${aws_iam_instance_profile.openshift-instance-profile.id}"
@@ -73,10 +73,63 @@ data "template_file" "setup-node" {
   //  Currently, no vars needed.
 }
 
+//  Create the two etcd nodes. This would be better as a Launch Configuration and
+//  autoscaling group, but I'm keeping it simple...
+resource "aws_instance" "etcd1" {
+  ami                  = "${data.aws_ami.rhel7_3.id}"
+  instance_type        = "${var.amisize}"
+  subnet_id            = "${aws_subnet.public-subnet.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.openshift-instance-profile.id}"
+  user_data            = "${data.template_file.setup-master.rendered}"
+
+  security_groups = [
+    "${aws_security_group.openshift-vpc.id}",
+    "${aws_security_group.openshift-public-ingress.id}",
+    "${aws_security_group.openshift-public-egress.id}",
+  ]
+
+  //  We need at least 30GB for OpenShift, let's be greedy...
+  root_block_device {
+    volume_size = 50
+  }
+
+  key_name = "${aws_key_pair.keypair.key_name}"
+
+  tags {
+    Name    = "OpenShift ETCD 1"
+    Project = "openshift"
+  }
+}
+resource "aws_instance" "etcd2" {
+  ami                  = "${data.aws_ami.rhel7_3.id}"
+  instance_type        = "${var.amisize}"
+  subnet_id            = "${aws_subnet.public-subnet.id}"
+  iam_instance_profile = "${aws_iam_instance_profile.openshift-instance-profile.id}"
+  user_data            = "${data.template_file.setup-master.rendered}"
+
+  security_groups = [
+    "${aws_security_group.openshift-vpc.id}",
+    "${aws_security_group.openshift-public-ingress.id}",
+    "${aws_security_group.openshift-public-egress.id}",
+  ]
+
+  //  We need at least 30GB for OpenShift, let's be greedy...
+  root_block_device {
+    volume_size = 50
+  }
+
+  key_name = "${aws_key_pair.keypair.key_name}"
+
+  tags {
+    Name    = "OpenShift ETCD 2"
+    Project = "openshift"
+  }
+}
+
 //  Create the two nodes. This would be better as a Launch Configuration and
 //  autoscaling group, but I'm keeping it simple...
 resource "aws_instance" "node1" {
-  ami                  = "${data.aws_ami.rhel7_2.id}"
+  ami                  = "${data.aws_ami.rhel7_3.id}"
   instance_type        = "${var.amisize}"
   subnet_id            = "${aws_subnet.public-subnet.id}"
   iam_instance_profile = "${aws_iam_instance_profile.openshift-instance-profile.id}"
@@ -101,7 +154,7 @@ resource "aws_instance" "node1" {
   }
 }
 resource "aws_instance" "node2" {
-  ami                  = "${data.aws_ami.rhel7_2.id}"
+  ami                  = "${data.aws_ami.rhel7_3.id}"
   instance_type        = "${var.amisize}"
   subnet_id            = "${aws_subnet.public-subnet.id}"
   iam_instance_profile = "${aws_iam_instance_profile.openshift-instance-profile.id}"

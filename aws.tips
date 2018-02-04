@@ -1,0 +1,27 @@
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[Tags[?Key==`Name`].Value,PublicDnsName]'
+
+.ssh/config ->
+Host *
+ AddKeysToAgent yes
+ IdentityFile ~/.ssh/id_rsa
+Host master
+    Hostname=ec2-35-176-24-151.eu-west-2.compute.amazonaws.com
+    StrictHostKeyChecking=no
+Host etcd1
+    Hostname=ec2-35-176-24-151.eu-west-2.compute.amazonaws.com
+    StrictHostKeyChecking=no
+Host etcd2
+    Hostname=ec2-35-176-136-165.eu-west-2.compute.amazonaws.com
+    StrictHostKeyChecking=no
+Host node1
+    Hostname=ec2-35-177-69-248.eu-west-2.compute.amazonaws.com
+    StrictHostKeyChecking=no
+Host node2
+    Hostname=c2-35-177-232-20.eu-west-2.compute.amazonaws.com
+    StrictHostKeyChecking=no
+chmod 644 .ssh/config
+
+sudo su -
+yum install -y wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct
+yum update -y
+

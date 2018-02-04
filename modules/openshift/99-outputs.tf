@@ -12,6 +12,32 @@ output "master-private_ip" {
   value = "${aws_instance.master.private_ip}"
 }
 
+output "etcd1-public_dns" {
+  value = "${aws_instance.etcd1.public_dns}"
+}
+output "etcd1-public_ip" {
+  value = "${aws_instance.etcd1.public_ip}"
+}
+output "etcd1-private_dns" {
+  value = "${aws_instance.etcd1.private_dns}"
+}
+output "etcd1-private_ip" {
+  value = "${aws_instance.etcd1.private_ip}"
+}
+
+output "etcd2-public_dns" {
+  value = "${aws_instance.etcd2.public_dns}"
+}
+output "etcd2-public_ip" {
+  value = "${aws_instance.etcd2.public_ip}"
+}
+output "etcd2-private_dns" {
+  value = "${aws_instance.etcd2.private_dns}"
+}
+output "etcd2-private_ip" {
+  value = "${aws_instance.etcd2.private_ip}"
+}
+
 output "node1-public_dns" {
   value = "${aws_instance.node1.public_dns}"
 }
